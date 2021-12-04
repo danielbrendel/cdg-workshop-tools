@@ -1,0 +1,11 @@
+2D Art Credits:
+===============
+Explosion sprite: helpcomputer (https://opengameart.org/content/explosions-2)
+Rocket: Napoleon (https://opengameart.org/content/missile, https://opengameart.org/content/basic-nuclear-signs)
+Rocket trail and crosshair: para (https://opengameart.org/content/animated-particle-effects-2)
+Alien infantry: Carlos Alface (https://opengameart.org/content/drakir-race-pack)
+
+SFX Credits:
+============
+Step: Jute (https://opengameart.org/content/foot-walking-step-sounds-on-stone-water-snow-wood-and-dirt)
+Explosion: Iwan Gabovitch (https://opengameart.org/content/synthesized-explosion)
