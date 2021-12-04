@@ -1,0 +1,7 @@
+toolname alienfighter
+title Alien Fighter
+description An alien fighter ship
+visibility true
+tags none
+preview D:\Programme\Steam\steamapps\common\Casual Desktop Game\tools\alienfighter\preview.png
+changenote 0.1 - initial release

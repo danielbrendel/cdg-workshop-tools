@@ -3,7 +3,7 @@
 	
 	(C) 2018 - 2021 by Daniel Brendel
 	
-	Tool: Alien Infantry (developed by Daniel Brendel)
+	Tool: Alien Fighter (developed by Daniel Brendel)
 	Version: 0.1
 	Contact: dbrendel1988<at>gmail<dot>com
 	GitHub: https://github.com/danielbrendel/
@@ -291,9 +291,9 @@
 */
 
 string g_szToolPath = "";
-bool g_bTeamToggle = true;
-Vector g_vecMousePos;
+bool g_bTeamSelection = true;
 bool g_bSelectionStatus = false;
+Vector g_vecMousePos;
 GameKeys g_GameKeys;
 
 /* 
@@ -308,120 +308,6 @@ GameKeys g_GameKeys;
 	you don't need to use them. A scripted entity is passed to the 
 	game engine via the SpawnEntity(<object handle>, <spawn position>) function. 
 */
-class CBloodSplash : IScriptedEntity
-{
-	Vector m_vecPos;
-	Model m_oModel;
-	Timer m_oLifeTime;
-	SpriteHandle m_hSprite;
-	
-	CBloodSplash()
-    {
-    }
-	
-	//Called when the entity gets spawned. The position on the screen is passed as argument
-	void OnSpawn(const Vector& in vec)
-	{
-		this.m_vecPos = vec;
-		this.m_hSprite = R_LoadSprite(g_szToolPath + "blood.png", 1, 64, 64, 1, false);
-		this.m_oLifeTime.SetDelay(120000);
-		this.m_oLifeTime.Reset();
-		this.m_oLifeTime.SetActive(true);
-		this.m_oModel.Alloc();
-		SoundHandle hSound = S_QuerySound(g_szToolPath + "splash.wav");
-		S_PlaySound(hSound, 10);
-	}
-	
-	//Called when the entity gets released
-	void OnRelease()
-	{
-	}
-	
-	//Process entity stuff
-	void OnProcess()
-	{
-		this.m_oLifeTime.Update();
-	}
-	
-	//Entity can draw everything in default order here
-	void OnDraw()
-	{
-		R_DrawSprite(this.m_hSprite, this.m_vecPos, 0, 0.0, Vector(-1, -1), 0.0, 0.0, false, Color(0, 0, 0, 0));
-	}
-	
-	//Indicate whether the user is allowed to clean this entity
-	bool DoUserCleaning()
-	{
-		return true;
-	}
-	
-	//Indicate whether this entity shall be removed by the game
-	bool NeedsRemoval()
-	{
-		return this.m_oLifeTime.IsElapsed();
-	}
-	
-	//Indicate whether this entity is damageable. Damageable entities can collide with other
-	//entities (even with entities from other tools) and recieve and strike damage. 
-	//0 = not damageable, 1 = damage all, 2 = not damaging entities with same name
-	DamageType IsDamageable()
-	{
-		return DAMAGEABLE_NO;
-	}
-	
-	//Called when the entity recieves damage
-	void OnDamage(DamageValue dv)
-	{
-	}
-	
-	//Called for recieving the model data for this entity. This is only used for
-	//damageable entities. 
-	Model& GetModel()
-	{
-		return this.m_oModel;
-	}
-	
-	//Called for recieving the current position. This is useful if the entity shall move.
-	Vector& GetPosition()
-	{
-		return this.m_vecPos;
-	}
-	
-	//Return the rotation. This is actually not used by the host application, but might be useful to other entities
-	float GetRotation()
-	{
-		return 0.0;
-	}
-	
-	//Called for querying the damage value for this entity
-	DamageValue GetDamageValue()
-	{
-		return 1;
-	}
-	
-	//Return a name string here, e.g. the class name or instance name. This is used when DAMAGE_NOTSQUAD is defined as damage-type, but can also be useful to other entities
-	string GetName()
-	{
-		return "";
-	}
-	
-	//Indicate if this entity is movable
-	bool IsMovable()
-	{
-		return false;
-	}
-	
-	//This vector is used for drawing the selection box
-	Vector& GetSelectionSize()
-	{
-		return this.m_vecPos;
-	}
-	
-	//This method is used to set the movement destination position
-	void MoveTo(const Vector& in vec)
-	{
-	}
-}
 class CExplosion : IScriptedEntity
 {
 	Vector m_vecPos;
@@ -552,151 +438,103 @@ class CExplosion : IScriptedEntity
 	{
 	}
 }
-class CMissile : IScriptedEntity
+class CLaserEntity : IScriptedEntity
 {
 	Vector m_vecPos;
-	float m_fRotation;
+	Vector m_vecTarget;
 	Model m_oModel;
-	SpriteHandle m_hMissile;
-	SpriteHandle m_hTrail;
-	int m_iTrailIndex;
-	IScriptedEntity@ m_pTarget;
-	Timer m_tmrForward;
-	float m_fTargetRot;
-	float m_fRotStep;
-	bool m_bHasCollided;
-	DamageValue m_dvHealth;
+	SpriteHandle m_hLaser;
+	float m_fRotation;
 	float m_fSpeed;
+	bool m_bRemove;
 	Timer m_tmrLifeTime;
-	SoundHandle m_hExplode;
+	IScriptedEntity@ m_pTarget;
 	
-	CMissile()
+	CLaserEntity()
     {
+		this.m_fSpeed = 25.0;
+		this.m_bRemove = false;
 		@this.m_pTarget = null;
-		this.m_bHasCollided = false;
-		this.m_dvHealth = 1;
-		this.m_fSpeed = 5.5;
-		this.m_tmrLifeTime.SetDelay(10000);
-		this.m_tmrLifeTime.Reset();
-		this.m_tmrLifeTime.SetActive(true);
-		this.m_iTrailIndex = 0;
     }
 	
-	void SetTarget(IScriptedEntity@ pEntity)
+	void SetRotation(float fRotation)
 	{
-		@m_pTarget = @pEntity;
+		//Set rotation
+		
+		this.m_fRotation = fRotation;
 	}
 	
-	void SetRotation(float fRot)
+	void SetTarget(IScriptedEntity@ pTarget)
 	{
-		this.m_fRotation = fRot;
-	}
-	
-	float GetAimRot()
-	{
-		//Get aim rotation
-		Vector vecTargetPos = this.m_pTarget.GetPosition();
-		float fAngle = atan2(float(vecTargetPos[1] - this.m_vecPos[1]), float(vecTargetPos[0] - this.m_vecPos[0]));
-		return fAngle + 6.30 / 4;
+		//Set target
+		
+		@this.m_pTarget = pTarget;
 	}
 	
 	void Move()
 	{
+		//Move laser
+		
 		//Set next position according to view
 		this.m_vecPos[0] += int(sin(this.m_fRotation + 0.014) * this.m_fSpeed);
 		this.m_vecPos[1] -= int(cos(this.m_fRotation + 0.014) * this.m_fSpeed);
 		
-		//Correct position according to screen pos
-		if (this.m_vecPos[0] - 81 < 0)
-			this.m_vecPos[0] = Wnd_GetWindowCenterX() * 2;
-		else if (this.m_vecPos[0] > Wnd_GetWindowCenterX() * 2)
-			this.m_vecPos[0] = 0;
-		if (this.m_vecPos[1] < 0)
-			this.m_vecPos[1] = Wnd_GetWindowCenterY() * 2;
-		else if (this.m_vecPos[1] > Wnd_GetWindowCenterY() * 2)
-			this.m_vecPos[1] = 0;
+		if (this.m_pTarget.GetModel().GetBBox().IsInside(this.m_pTarget.GetPosition(), Vector(this.m_vecPos[0] + 10, this.m_vecPos[1] + 10))) {
+			this.m_bRemove = true;
+			this.m_pTarget.OnDamage(this.GetDamageValue());
+		}
 	}
 	
 	//Called when the entity gets spawned. The position on the screen is passed as argument
 	void OnSpawn(const Vector& in vec)
 	{
 		this.m_vecPos = vec;
-		this.m_hMissile = R_LoadSprite(g_szToolPath + "missile.png", 1, 80, 60, 1, false);
-		this.m_hTrail = R_LoadSprite(g_szToolPath + "trail.png", 64, 128, 128, 8, false);
-		this.m_hExplode = S_QuerySound(g_szToolPath + "hit.wav");
-		this.m_tmrForward.SetDelay(10);
-		this.m_tmrForward.Reset();
-		this.m_tmrForward.SetActive(true);
+		this.m_hLaser = R_LoadSprite(g_szToolPath + "laser_ball.png", 1, 32, 32, 1, true);
+		this.m_tmrLifeTime.SetDelay(5000);
+		this.m_tmrLifeTime.Reset();
+		this.m_tmrLifeTime.SetActive(true);
 		this.m_oModel.Alloc();
+		BoundingBox bbox;
+		bbox.Alloc();
+		bbox.AddBBoxItem(Vector(0, 0), Vector(32, 32));
+		this.m_oModel.Alloc();
+		this.m_oModel.SetCenter(Vector(32 / 2, 32 / 2));
+		this.m_oModel.Initialize2(bbox, this.m_hLaser);
 	}
 	
 	//Called when the entity gets released
 	void OnRelease()
 	{
-		CExplosion @expl = CExplosion();
-		Ent_SpawnEntity(@expl, Vector(this.m_vecPos[0] - 20, this.m_vecPos[1] - 20));
-		
-		S_PlaySound(this.m_hExplode, 8);
 	}
 	
 	//Process entity stuff
 	void OnProcess()
 	{
-		//Move missile
-		this.Move();
-		
-		//Process lifetime timer
 		this.m_tmrLifeTime.Update();
-		
-		//Validate target entity handle
-		if (!Ent_IsValid(@this.m_pTarget)) {
-			@this.m_pTarget = null;
-			this.m_bHasCollided = true;
-			return;
-		}
-		
-		//Process forward timer
-		if (this.m_tmrForward.IsActive()) { //Fly forward
-			this.m_tmrForward.Update();
-			if (this.m_tmrForward.IsElapsed()) {
-				this.m_tmrForward.SetActive(false);
-				this.m_fRotStep = Util_Random(0, 2) == 0 ? -0.01 : 0.01;
-			}
-		} else { //Head to target
-			this.m_fRotation = this.GetAimRot();
-			this.m_fSpeed = 10.0;
-			if (this.m_pTarget.GetModel().GetBBox().IsInside(this.m_pTarget.GetPosition(), Vector(this.m_vecPos[0] + 10, this.m_vecPos[1] + 10))) {
-				this.m_bHasCollided = true;
-				this.m_pTarget.OnDamage(this.GetDamageValue());
-			}
-		}
+		this.Move(); //Move laser
 	}
 	
 	//Entity can draw everything in default order here
 	void OnDraw()
 	{
-		Vector vecTrailPos = Vector(this.m_vecPos[0] + 20 - 45, this.m_vecPos[1] + 15 - 50);
-		vecTrailPos[0] += int(sin(this.m_fRotation + 0.014) * -30);
-		vecTrailPos[1] -= int(cos(this.m_fRotation + 0.014) * -30);
-		R_DrawSprite(this.m_hTrail, vecTrailPos, this.m_iTrailIndex, this.m_fRotation + 6.30 / 2, Vector(-1, -1), 0.3, 0.3, false, Color(0, 0, 0, 0));
-		
-		this.m_iTrailIndex++;
-		if (this.m_iTrailIndex >= 64)
-			this.m_iTrailIndex = 0;
-		
-		R_DrawSprite(this.m_hMissile, this.m_vecPos, 0, this.m_fRotation, Vector(-1, -1), 0.5, 0.5, false, Color(0, 0, 0, 0));
+	}
+	
+	//Entity can draw on-top stuff here
+	void OnDrawOnTop()
+	{
+		R_DrawSprite(this.m_hLaser, this.m_vecPos, 0, this.m_fRotation, Vector(-1, -1), 0.0, 0.0, false, Color(0, 0, 0, 0));
 	}
 	
 	//Indicate whether the user is allowed to clean this entity
 	bool DoUserCleaning()
 	{
-		return true;
+		return false;
 	}
 	
 	//Indicate whether this entity shall be removed by the game
 	bool NeedsRemoval()
 	{
-		return (this.m_tmrLifeTime.IsElapsed()) || (this.m_bHasCollided);
+		return (this.m_bRemove) || (this.m_tmrLifeTime.IsElapsed()); //Remove laser when reached position
 	}
 	
 	//Indicate whether this entity is damageable. Damageable entities can collide with other
@@ -734,13 +572,13 @@ class CMissile : IScriptedEntity
 	//Called for querying the damage value for this entity
 	DamageValue GetDamageValue()
 	{
-		return 50;
+		return 45;
 	}
 	
 	//Return a name string here, e.g. the class name or instance name. This is used when DAMAGE_NOTSQUAD is defined as damage-type, but can also be useful to other entities
 	string GetName()
 	{
-		return "CMissile";
+		return "";
 	}
 	
 	//Indicate if this entity is movable
@@ -760,102 +598,112 @@ class CMissile : IScriptedEntity
 	{
 	}
 }
-const int SOL_STATE_WALKING = 1;
-const int SOL_STATE_COMBAT = 2;
-const int SOL_TEAM_1 = 1;
-const int SOL_TEAM_2 = 2;
-const int MAX_CHECK_RANGE = 300;
-const int STOP_WALK_RANGE = 45;
+const int VEHICLE_TEAM_1 = 1;
+const int VEHICLE_TEAM_2 = 2;
+const int STOP_WALK_RANGE = 58;
+class AlienFighterAttributes
+{
+	int Health;
+	int Damage;
+	int Speed;
+	float Rotation;
+	uint8 Team;
+	Vector BodySize;
+}
 class color_s
 {
 	uint8 r, g, b, a;
 }
-class CBaseAlienInfantry : IScriptedEntity
+class CBaseAlienFighter : IScriptedEntity
 {
-	Vector m_vecPos;
+	Vector m_vecPosition;
 	Model m_oModel;
-	SpriteHandle m_hMove;
-	SoundHandle m_hAttackSound;
-	float m_fRotation;
-	int m_iCurrentState;
-	int m_iCurrentSprite;
-	Timer m_tmrAnim;
-	float m_fSpeed;
-	Timer m_tmrAnimAction;
-	Timer m_tmrStep;
-	SoundHandle m_hStep;
-	float m_fWalkRot;
-	bool m_bWalkRotSwitch;
+	SpriteHandle m_hSprBody;
+	float m_flBodyRot;
+	AlienFighterAttributes m_sAlienFighterAttrs;
+	Timer m_tmrAiming;
+	float m_flAimDest;
+	float m_flAimStep;
+	Timer m_tmrMovement;
+	Timer m_tmrDirMove;
+	float m_flDirDest;
 	IScriptedEntity@ m_pTarget;
-	int m_iTeam;
-	int m_iHealth;
-	Timer m_tmrShoot;
-	Timer m_tmrDrawMuzzle;
-	DamageValue m_ucAttackDamage;
+	Timer m_tmrAttack;
+	SoundHandle m_hFireSound;
 	Vector m_vecSelSize;
 	Vector m_vecTargetDest;
 	bool m_bMove;
 	
-	CBaseAlienInfantry()
+	CBaseAlienFighter()
     {
-		this.m_fSpeed = 8;
-		this.m_bWalkRotSwitch = false;
-		@this.m_pTarget = null;
-		this.m_iHealth = 50;
-		this.m_ucAttackDamage = 5;
+		@m_pTarget = null;
 		this.m_vecSelSize = Vector(50, 50);
 		this.m_bMove = false;
     }
 	
-	void SetTeam(int iTeam)
-	{
-		//Set team flag
-		
-		this.m_iTeam = iTeam;
-	}
+	//Getters
+	int GetHealth() { return this.m_sAlienFighterAttrs.Health; }
+	int GetDamage() { return this.m_sAlienFighterAttrs.Damage; }
+	int GetSpeed() { return this.m_sAlienFighterAttrs.Speed; }
+	float GetRotation_() { return this.m_sAlienFighterAttrs.Rotation; }
+	uint8 GetTeam() { return this.m_sAlienFighterAttrs.Team; }
 	
-	int GetTeam()
-	{
-		//Return team
-		
-		return this.m_iTeam;
-	}
+	//Setters
+	void SetHealth(int iHealth) { this.m_sAlienFighterAttrs.Health = iHealth; }
+	void SetDamage(int iDamage) { this.m_sAlienFighterAttrs.Damage = iDamage; }
+	void SetSpeed(int iSpeed) { this.m_sAlienFighterAttrs.Speed = iSpeed; }
+	void SetRotation_(float fRotation) { this.m_sAlienFighterAttrs.Rotation = fRotation; }
+	void SetTeam(uint8 ui8Team) { this.m_sAlienFighterAttrs.Team = ui8Team; }
+	void SetBodySize(const Vector& in vec) { this.m_sAlienFighterAttrs.BodySize = vec; }
 	
-	void EnterState(int iState)
+	//Actions
+	void AimTo(const Vector& in vecPos)
 	{
-		//Enter state of infantry
+		//Init aiming process
 		
-		this.m_iCurrentSprite = 0;
-		this.m_iCurrentState = iState;
-		this.m_tmrAnim.Reset();
+		//Calculate aim rotation
+		float flAngle = atan2(float(vecPos[1] - this.m_vecPosition[1]), float(vecPos[0] - this.m_vecPosition[0]));
+		this.m_flBodyRot = flAngle + 6.30 / 4;
 		
-		switch (iState) {
-			case SOL_STATE_WALKING:
-				this.m_tmrAnimAction.SetDelay(100);
-				this.m_tmrAnimAction.Reset();
-				this.m_tmrStep.SetDelay(500);
-				this.m_tmrStep.Reset();
-				this.m_tmrStep.SetActive(true);
-				this.m_tmrShoot.SetActive(false);
-				this.m_tmrDrawMuzzle.SetActive(false);
-				break;
-			case SOL_STATE_COMBAT:
-				this.m_tmrAnimAction.SetDelay(100);
-				this.m_tmrAnimAction.Reset();
-				this.m_tmrStep.SetActive(false);
-				this.m_tmrShoot.SetDelay(1500);
-				this.m_tmrShoot.Reset();
-				this.m_tmrShoot.SetActive(true);
-				this.m_tmrDrawMuzzle.Reset();
-				break;
-			default:
-				break;
+		//Activate attack timing if not already
+		if (!this.m_tmrAttack.IsActive()) {
+			this.m_tmrAttack.SetDelay(Util_Random(500, 1250));
+			this.m_tmrAttack.Reset();
+			this.m_tmrAttack.SetActive(true);
 		}
 	}
-	
+	void Move()
+	{
+		//Move vehicle
+		
+		if (!this.m_bMove)
+			return;
+
+		//Set next position according to view
+		this.m_vecPosition[0] += int(sin(this.m_flBodyRot + 0.014) * this.m_sAlienFighterAttrs.Speed);
+		this.m_vecPosition[1] -= int(cos(this.m_flBodyRot + 0.014) * this.m_sAlienFighterAttrs.Speed);
+		
+		//Correct if out of screen
+		if (this.m_vecPosition[0] < 0) this.m_vecPosition[0] = 0; else if (this.m_vecPosition[0] > Wnd_GetWindowCenterX() * 2) this.m_vecPosition[0] = Wnd_GetWindowCenterX() * 2;
+		if (this.m_vecPosition[1] < 0) this.m_vecPosition[1] = 0; else if (this.m_vecPosition[1] > Wnd_GetWindowCenterY() * 2) this.m_vecPosition[1] = Wnd_GetWindowCenterY() * 2;
+
+		//Check for destination reaching
+		if (this.m_vecPosition.Distance(this.m_vecTargetDest) < STOP_WALK_RANGE) {
+			this.m_bMove = false;
+		}
+	}
+	void ValidateTarget()
+	{
+		//Validate target
+		
+		if (!Ent_IsValid(this.m_pTarget))
+			@this.m_pTarget = null;
+	}
 	void CheckForTargets()
 	{
 		//Check for targets and set target if not already
+		
+		const int MAX_CHECK_RANGE = 350;
 		
 		IScriptedEntity@ pTargetEnt = null;
 		
@@ -868,7 +716,7 @@ class CBaseAlienInfantry : IScriptedEntity
 				}
 				
 				//Check if enemy in range
-				if ((this.m_vecPos.Distance(pEntity.GetPosition()) < MAX_CHECK_RANGE)) {
+				if ((this.m_vecPosition.Distance(pEntity.GetPosition()) < MAX_CHECK_RANGE)) {
 					@pTargetEnt = @pEntity;
 				}
 			}
@@ -876,180 +724,141 @@ class CBaseAlienInfantry : IScriptedEntity
 		
 		@this.m_pTarget = @pTargetEnt;
 	}
-	
-	void ValidateTarget()
+	void AttackTarget()
 	{
-		//Validate target
+		//Attack target if any
 		
-		if ((!Ent_IsValid(@this.m_pTarget)) || (this.m_vecPos.Distance(this.m_pTarget.GetPosition()) >= MAX_CHECK_RANGE)) {
-			@this.m_pTarget = null;
-			EnterState(SOL_STATE_WALKING);
-		}
-	}
-	
-	void AimTo(const Vector& in vecPos)
-	{
-		//Aim at position
-		
-		//Calculate aim rotation
-		float flAngle = atan2(float(vecPos[1] - this.m_vecPos[1]), float(vecPos[0] - this.m_vecPos[0]));
-		this.m_fRotation = flAngle + 6.30 / 4;
-	}
-	
-	void Move(void)
-	{
-		//Update position according to speed
-		
-		if (!this.m_bMove)
+		//Deactivate attacking if no target is set
+		if (@this.m_pTarget == null) {
+			this.m_tmrAttack.SetActive(false);
 			return;
-
-		this.m_vecPos[0] += int(sin(this.m_fRotation + 0.014) * this.m_fSpeed);
-		this.m_vecPos[1] -= int(cos(this.m_fRotation + 0.014) * this.m_fSpeed);
-		
-		if (this.m_vecPos.Distance(this.m_vecTargetDest) < STOP_WALK_RANGE) {
-			this.m_bMove = false;
 		}
-
-		if (this.m_vecPos[0] < -313)
-			this.m_vecPos[0] = Wnd_GetWindowCenterX() * 2;
-		else if (this.m_vecPos[0] > Wnd_GetWindowCenterX() * 2 + 313)
-			this.m_vecPos[0] = -313;
-			
-		if (this.m_vecPos[1] <  -206)
-			this.m_vecPos[1] = Wnd_GetWindowCenterY() * 2;
-		else if (this.m_vecPos[1] > Wnd_GetWindowCenterY() * 2 + 206)
-			this.m_vecPos[1] = -206;
+		
+		//Perform aiming at target
+		this.AimTo(this.m_pTarget.GetPosition());
 	}
-	
 	void Fire()
 	{
-		//Fire rocket launcher
+		//Fire at target
 		
-		CMissile@ missile = CMissile();
-		missile.SetTarget(@this.m_pTarget);
-		missile.SetRotation(this.m_fRotation);
-		Ent_SpawnEntity(@missile, this.m_vecPos);
-	}
-	
-	void UpdateAnimSpriteIndex()
-	{
-		//Update animation sprite index for current state
+		if (@this.m_pTarget == null)
+			return;
 		
-		/*this.m_iCurrentSprite++;
+		for (int i = 0; i < 5; i++) {
+			CLaserEntity@ ball = CLaserEntity();
+
+			float fBallRot = this.GetRotation();
+							
+			if (i == 0) {
+				fBallRot -= 0.3;
+			} else if (i == 1) {
+				fBallRot -= 0.2;
+			} else if (i == 3) {
+				fBallRot += 0.2;
+			} else if (i == 2) {
+				fBallRot += 0.3;
+			}
+
+			ball.SetRotation(fBallRot);
+			ball.SetTarget(@this.m_pTarget);
+
+			Vector vecBulletPos = Vector(this.m_vecPosition[0], this.m_vecPosition[1]);
+
+			Ent_SpawnEntity(ball, vecBulletPos);
+		}
 		
-		switch (this.m_iCurrentState) {
-			case SOL_STATE_WALKING:
-				if (this.m_iCurrentSprite >= int(this.m_arrMovement.length() - 1)) this.m_iCurrentSprite = 0;
-				break;
-			case SOL_STATE_COMBAT:
-				if (this.m_iCurrentSprite >= int(this.m_arrShooting.length() - 1)) this.m_iCurrentSprite = 0;
-				break;
-			default:
-				break;
-		}*/
+		S_PlaySound(this.m_hFireSound, 8);
 	}
 	
 	//Called when the entity gets spawned. The position on the screen is passed as argument
 	void OnSpawn(const Vector& in vec)
 	{
-		this.m_vecPos = vec;
-		this.m_fRotation = Util_Random(0, 630) / 100.0;
-		
-		this.m_hMove = R_LoadSprite(g_szToolPath + "alieninfantry.png", 1, 39, 43, 1, false);
-		this.m_hAttackSound = S_QuerySound(g_szToolPath + "shoot.wav");
-		
-		this.m_hStep = S_QuerySound(g_szToolPath + "step.wav");
-		
-		this.m_tmrAnim.SetDelay(250);
-		this.m_tmrAnim.Reset();
-		this.m_tmrAnim.SetActive(true);
-		
-		this.m_tmrShoot.SetActive(false);
-		this.m_tmrDrawMuzzle.SetActive(false);
-		this.m_tmrDrawMuzzle.SetDelay(10);
-		
-		this.m_tmrAnimAction.SetActive(true);
-		this.EnterState(SOL_STATE_WALKING);
-		
+		this.m_vecPosition = vec;
+		float flInitRot = float(Util_Random(1, 630)) / 100;
+		this.m_flBodyRot = flInitRot;
+		this.m_hSprBody = R_LoadSprite(g_szToolPath + "alienvehicle.png", 1, this.m_sAlienFighterAttrs.BodySize[0], this.m_sAlienFighterAttrs.BodySize[1], 1, false);
+		this.m_hFireSound = S_QuerySound(g_szToolPath + "fire.wav");
+		this.m_tmrAiming.SetActive(false);
+		this.m_tmrAttack.SetActive(false);
+		this.m_tmrDirMove.SetActive(false);
+		this.m_tmrMovement.SetDelay(100);
+		this.m_tmrMovement.Reset();
+		this.m_tmrMovement.SetActive(true);
 		BoundingBox bbox;
 		bbox.Alloc();
-		bbox.AddBBoxItem(Vector(0, 0), Vector(43, 32));
+		bbox.AddBBoxItem(Vector(0, 0), Vector(this.m_sAlienFighterAttrs.BodySize[0], this.m_sAlienFighterAttrs.BodySize[1]));
 		this.m_oModel.Alloc();
-		this.m_oModel.SetCenter(Vector(21, 16));
-		this.m_oModel.Initialize2(bbox, this.m_hMove);
+		this.m_oModel.SetCenter(Vector(this.m_sAlienFighterAttrs.BodySize[0] / 4, this.m_sAlienFighterAttrs.BodySize[1] / 4));
+		this.m_oModel.Initialize2(bbox, this.m_hSprBody);
 	}
 	
 	//Called when the entity gets released
 	void OnRelease()
 	{
-		CBloodSplash @obj = CBloodSplash();
-		Ent_SpawnEntity(@obj, Vector(this.m_vecPos[0], this.m_vecPos[1]));
+		//Spawn explosion at destination
+		CExplosion@ expl = CExplosion();
+		Ent_SpawnEntity(@expl, Vector(this.m_vecPosition[0] - this.m_sAlienFighterAttrs.BodySize[0], this.m_vecPosition[1] - this.m_sAlienFighterAttrs.BodySize[1]));
+		
+		//Play disposal sound
+		SoundHandle hDispose = S_QuerySound(g_szToolPath + "dispose.wav");
+		S_PlaySound(hDispose, 10);
 	}
 	
 	//Process entity stuff
 	void OnProcess()
 	{
-		//Update animation timer
-		if (this.m_tmrAnim.IsActive()) {
-			this.m_tmrAnim.Update();
-			if (this.m_tmrAnim.IsElapsed()) {
-				this.m_tmrAnim.Reset();
-				this.UpdateAnimSpriteIndex();
+		this.ValidateTarget(); //Validate target
+	
+		//Process movement
+		if ((this.m_tmrMovement.IsActive()) && (!this.m_tmrAttack.IsActive())) {
+			this.m_tmrMovement.Update();
+			if (this.m_tmrMovement.IsElapsed()) {
+				this.Move();
 			}
 		}
 		
-		//Process action timer
-		if (this.m_tmrAnimAction.IsActive()) {
-			this.m_tmrAnimAction.Update();
-			if (this.m_tmrAnimAction.IsElapsed()) {
-				this.m_tmrAnimAction.Reset();
-				
-				switch (this.m_iCurrentState) {
-					case SOL_STATE_WALKING:
-						this.Move();
-						this.CheckForTargets();
-						if (@this.m_pTarget != null) EnterState(SOL_STATE_COMBAT);
-						break;
-					case SOL_STATE_COMBAT:
-						this.ValidateTarget();
-						if (@this.m_pTarget != null) this.AimTo(this.m_pTarget.GetPosition());
-						break;
-					default:
-						break;
-				}
+		if (this.m_tmrDirMove.IsActive()) {
+			this.m_tmrDirMove.Update();
+			//Add rotation value to body rotation
+			this.m_flBodyRot += this.m_sAlienFighterAttrs.Rotation;
+			//Correct rotation value if required
+			if (this.m_flBodyRot < 0.00) this.m_flBodyRot = 6.30;
+			else if (this.m_flBodyRot > 6.30) this.m_flBodyRot = 0.00;
+			//Deactivate body rotation change if reached dest rotation
+			if (closeTo(this.m_flBodyRot, this.m_flDirDest, 0.01f)) {
+				this.m_tmrDirMove.SetActive(false);
 			}
 		}
 		
-		//Process step timer
-		if ((this.m_tmrStep.IsActive()) && (this.m_bMove)) {
-			this.m_tmrStep.Update();
-			if (this.m_tmrStep.IsElapsed()) {
-				this.m_tmrStep.Reset();
-				this.m_bWalkRotSwitch = !this.m_bWalkRotSwitch;
-				this.m_fWalkRot = (this.m_bWalkRotSwitch) ? -0.1 : 0.1;
-				S_PlaySound(this.m_hStep, 8);
+		//Process aiming
+		if (this.m_tmrAiming.IsActive()) {
+			this.m_tmrAiming.Update();
+			//Add rotation step to current head rot
+			this.m_flBodyRot += this.m_flAimStep;
+			//Correct rotation value if required
+			if (this.m_flBodyRot < 0.00) this.m_flBodyRot = 6.30;
+			else if (this.m_flBodyRot > 6.30) this.m_flBodyRot = 0.00;
+			//Deactivate aiming if rotation has reached the dest rotation and then activate firing
+			if (int(this.m_flBodyRot * 100) == int(this.m_flAimDest * 100)) {
+				this.m_tmrAiming.SetActive(false);
+				this.m_tmrAttack.SetDelay(Util_Random(500, 1250));
+				this.m_tmrAttack.Reset();
+				this.m_tmrAttack.SetActive(true);
 			}
 		}
 		
 		//Process attacking
-		if (this.m_tmrShoot.IsActive()) {
-			this.m_tmrShoot.Update();
-			if (this.m_tmrShoot.IsElapsed()) {
-				this.m_tmrShoot.Reset();
-				
-				S_PlaySound(this.m_hAttackSound, 8);
-				
+		if (this.m_tmrAttack.IsActive()) {
+			this.m_tmrAttack.Update();
+			if (this.m_tmrAttack.IsElapsed()) {
+				this.m_tmrAttack.Reset();
 				this.Fire();
 			}
 		}
 		
-		//Process muzzle timer
-		if (this.m_tmrDrawMuzzle.IsActive()) {
-			this.m_tmrDrawMuzzle.Update();
-			if (this.m_tmrDrawMuzzle.IsElapsed()) {
-				this.m_tmrDrawMuzzle.SetActive(false);
-			}
-		}
+		//Check for targets
+		this.CheckForTargets();
+		this.AttackTarget();
 	}
 	
 	//Entity can draw everything in default order here
@@ -1061,7 +870,7 @@ class CBaseAlienInfantry : IScriptedEntity
 	void OnDrawOnTop()
 	{
 		color_s sDrawingColor;
-		if (this.GetTeam() == SOL_TEAM_1) {
+		if (this.GetTeam() == VEHICLE_TEAM_1) {
 			sDrawingColor.r = 105;
 			sDrawingColor.g = 201;
 			sDrawingColor.b = 224;
@@ -1073,8 +882,7 @@ class CBaseAlienInfantry : IScriptedEntity
 			sDrawingColor.a = 255;
 		}
 		
-		//Draw animation sprite
-		R_DrawSprite(this.m_hMove, this.m_vecPos, 0, this.m_fRotation, Vector(-1, -1), 0.0, 0.0, true, Color(sDrawingColor.r, sDrawingColor.g, sDrawingColor.b, sDrawingColor.a));
+		R_DrawSprite(this.m_hSprBody, this.m_vecPosition, 0, this.m_flBodyRot, Vector(-1, -1), 0.0, 0.0, true, Color(sDrawingColor.r, sDrawingColor.g, sDrawingColor.b, sDrawingColor.a));
 	}
 	
 	//Indicate whether the user is allowed to clean this entity
@@ -1086,7 +894,7 @@ class CBaseAlienInfantry : IScriptedEntity
 	//Indicate whether this entity shall be removed by the game
 	bool NeedsRemoval()
 	{
-		return this.m_iHealth <= 0;
+		return this.m_sAlienFighterAttrs.Health <= 0;
 	}
 	
 	//Indicate whether this entity is damageable. Damageable entities can collide with other
@@ -1100,7 +908,7 @@ class CBaseAlienInfantry : IScriptedEntity
 	//Called when the entity recieves damage
 	void OnDamage(DamageValue dv)
 	{
-		this.m_iHealth -= int(dv);
+		this.m_sAlienFighterAttrs.Health -= dv;
 	}
 	
 	//Called for recieving the model data for this entity. This is only used for
@@ -1113,25 +921,25 @@ class CBaseAlienInfantry : IScriptedEntity
 	//Called for recieving the current position. This is useful if the entity shall move.
 	Vector& GetPosition()
 	{
-		return this.m_vecPos;
+		return this.m_vecPosition;
 	}
 	
 	//Return the rotation. This is actually not used by the host application, but might be useful to other entities
 	float GetRotation()
 	{
-		return this.m_fRotation;
+		return this.m_flBodyRot;
 	}
 	
 	//Called for querying the damage value for this entity
 	DamageValue GetDamageValue()
 	{
-		return 0;
+		return this.m_sAlienFighterAttrs.Damage;
 	}
 	
 	//Return a name string here, e.g. the class name or instance name. This is used when DAMAGE_NOTSQUAD is defined as damage-type, but can also be useful to other entities
 	string GetName()
 	{
-		return "CBaseAlienInfantry";
+		return "CBaseAlienFighter";
 	}
 	
 	//Indicate if this entity is movable
@@ -1153,23 +961,28 @@ class CBaseAlienInfantry : IScriptedEntity
 		this.m_vecTargetDest = vec;
 		
 		//Calculate body rotation
-		float flAngle = atan2(float(vec[1] - this.m_vecPos[1]), float(vec[0] - this.m_vecPos[0]));
-		this.m_fRotation = flAngle + 6.30 / 4;
+		float flAngle = atan2(float(vec[1] - this.m_vecPosition[1]), float(vec[0] - this.m_vecPosition[0]));
+		this.m_flBodyRot = flAngle + 6.30 / 4;
 
 		//Enable movement
 		this.m_bMove = true;
 	}
 }
-class CAlienInfantry : CBaseAlienInfantry
+class CAlienFighter : CBaseAlienFighter
 {
-	CAlienInfantry()
+	CAlienFighter()
 	{
-		this.SetTeam((g_bTeamToggle) ? SOL_TEAM_1 : SOL_TEAM_2);
+		this.SetHealth(450);
+		this.SetDamage(25);
+		this.SetSpeed(2);
+		this.SetRotation_(0.02);
+		this.SetTeam((g_bTeamSelection) ? VEHICLE_TEAM_1 : VEHICLE_TEAM_2);
+		this.SetBodySize(Vector(76, 97));
 	}
 	
 	string GetName()
 	{
-		return (this.GetTeam() == SOL_TEAM_1) ? "Combat.Team1" : "Combat.Team2";
+		return (this.GetTeam() == VEHICLE_TEAM_1) ? "Combat.Team1" : "Combat.Team2";
 	}
 }
 
@@ -1202,7 +1015,7 @@ void CDG_API_Draw()
 void CDG_API_DrawOnTop()
 {
 	if (g_bSelectionStatus) {
-		string szInfoStr = (g_bTeamToggle) ? "[Alien Infantry] Team 1" : "[Alien Infantry] Team 2";
+		string szInfoStr = (g_bTeamSelection) ? "[Alien Fighter] Team 1" : "[Alien Fighter] Team 2";
 		R_DrawString(R_GetDefaultFont(), szInfoStr, Vector(g_vecMousePos[0], g_vecMousePos[1]), Color(128, 0, 64, 150));
 	}
 }
@@ -1213,8 +1026,9 @@ void CDG_API_DrawOnTop()
 */
 void CDG_API_Trigger(const Vector& in vAtPos)
 {
-	CAlienInfantry @obj = CAlienInfantry();
-	Ent_SpawnEntity(@obj, Vector(vAtPos[0], vAtPos[1]));
+	CAlienFighter @obj = CAlienFighter();
+	obj.SetTeam((g_bTeamSelection) ? VEHICLE_TEAM_1 : VEHICLE_TEAM_2);
+	Ent_SpawnEntity(@obj, vAtPos);
 }
 
 /*
@@ -1223,8 +1037,8 @@ void CDG_API_Trigger(const Vector& in vAtPos)
 */
 void CDG_API_KeyEvent(int iKey, bool bDown)
 {
-	if ((iKey == g_GameKeys.vkTeamSelect) && (!bDown))
-		g_bTeamToggle = !g_bTeamToggle;
+	if ((iKey == g_GameKeys.vkTeamSelect) && (bDown))
+		g_bTeamSelection = !g_bTeamSelection;
 }
 
 /*
@@ -1259,7 +1073,7 @@ void CDG_API_Release()
 */
 bool CDG_API_QueryToolInfo(HostVersion hvVersion, ToolInfo &out info, const GameKeys& in gamekeys, const string &in szToolPath)
 {
-	info.szName = "Alien Infantry";
+	info.szName = "Alien Fighter";
 	info.szAuthor = "Daniel Brendel";
 	info.szVersion = "0.1";
 	info.szContact = "dbrendel1988<at>gmail<dot>com";
