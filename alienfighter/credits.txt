@@ -1,8 +1,6 @@
 2D Art Credits:
 ===============
 Explosion sprite: helpcomputer (https://opengameart.org/content/explosions-2)
-Rocket: Napoleon (https://opengameart.org/content/missile, https://opengameart.org/content/basic-nuclear-signs)
-Rocket trail and crosshair: para (https://opengameart.org/content/animated-particle-effects-2)
 Alien vehicle: Carlos Alface (https://opengameart.org/content/spaceships-drakir)
 
 SFX Credits:

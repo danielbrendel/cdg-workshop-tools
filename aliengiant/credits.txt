@@ -1,0 +1,12 @@
+2D Art Credits:
+===============
+Explosion sprite: helpcomputer (https://opengameart.org/content/explosions-2)
+Big Explosion: Sinestesia (https://opengameart.org/content/2d-explosion-animations-frame-by-frame)
+Rocket: Napoleon (https://opengameart.org/content/missile, https://opengameart.org/content/basic-nuclear-signs)
+Rocket trail and crosshair: para (https://opengameart.org/content/animated-particle-effects-2)
+Alien giant: Carlos Alface (https://opengameart.org/content/spaceships-drakir)
+Lightning: oglsdl (https://opengameart.org/content/lightning-1)
+
+SFX Credits:
+============
+Explosion and bolt: Iwan Gabovitch (https://opengameart.org/content/synthesized-explosion)
