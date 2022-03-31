@@ -1,0 +1,7 @@
+toolname sidelaser
+title Sidelaser
+description Laser shooting from left and right
+visibility true
+tags none
+preview D:\Programme\Steam\steamapps\common\Casual Desktop Game\tools\sidelaser\preview.png
+changenote 0.1 - initial release
