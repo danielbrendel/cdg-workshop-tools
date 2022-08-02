@@ -4,4 +4,4 @@ description A laser shooting dragon monster
 visibility true
 tags none
 preview D:\Programme\Steam\steamapps\common\Casual Desktop Game\tools\wolfdragon\preview.jpg
-changenote 0.1 - initial release
+changenote 0.2 - bugfixes & improvements

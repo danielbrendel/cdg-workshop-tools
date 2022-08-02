@@ -595,16 +595,8 @@ class CWolfdragon : IScriptedEntity
 	{
 		//Look at position
 
-		float flAngle = atan2(float(vPos[1] - this.m_vecPos[1]), float(vPos[0] - this.m_vecPos[0]));
+		float flAngle = atan2(float(vPos[1] - (this.m_vecPos[1] + 150)), float(vPos[0] - (this.m_vecPos[0] + 105)));
 		this.m_fRotation = flAngle + 6.30 / 4;
-	}
-
-	float GetAimRotation(const Vector &in vPos)
-	{
-		//Get aim rotation
-		
-		float fAngle = atan2(float(vPos[1] - this.m_vecPos[1]), float(vPos[0] - this.m_vecPos[0]));
-		return fAngle - 6.30 / 4;
 	}
 
 	void Fire(IScriptedEntity@ pEntity)
@@ -631,7 +623,9 @@ class CWolfdragon : IScriptedEntity
 
 			ball.SetRotation(fBallRot);
 
-			Vector vecBulletPos = Vector(this.m_vecPos[0] + 100, this.m_vecPos[1] + 100);
+			Vector vecBulletPos = Vector(this.m_vecPos[0] + 150, this.m_vecPos[1] + 100);
+			vecBulletPos[0] += int(sin(this.m_fRotation) * 100);
+			vecBulletPos[1] -= int(cos(this.m_fRotation) * 100);
 
 			Ent_SpawnEntity(ball, vecBulletPos);
 		}
