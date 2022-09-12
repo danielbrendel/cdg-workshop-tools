@@ -1,0 +1,7 @@
+toolname mine
+title Mine
+description Don't come too close
+visibility true
+tags none
+preview C:\Program Files (x86)\Steam\steamapps\common\Casual Desktop Game\tools\mine\preview.png
+changenote 0.1 - initial release

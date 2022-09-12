@@ -1,0 +1,7 @@
+toolname shotgun
+title Shotgun
+description A strong shotgun weapon
+visibility true
+tags none
+preview C:\Program Files (x86)\Steam\steamapps\common\Casual Desktop Game\tools\shotgun\preview.png
+changenote 0.1 - initial release
