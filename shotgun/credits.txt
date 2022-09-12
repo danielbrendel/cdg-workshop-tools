@@ -1,0 +1,8 @@
+2D Art Credits:
+===============
+Gun: ashmoses (https://opengameart.org/content/weapon-inventory-graphics)
+Muzzleflash sprite: tgfcoder (https://opengameart.org/content/endless-midnight-zombie-swarm-assets)
+
+SFX Credits:
+============
+Gunshot: Q009 (https://opengameart.org/content/q009s-weapon-sounds)
