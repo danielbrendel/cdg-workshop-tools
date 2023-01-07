@@ -1,0 +1,9 @@
+2D Art Credits:
+===============
+Molotov: AntumDeluge (https://opengameart.org/content/cc0-explosive-icons)
+Flame sheet: dorkster (https://opengameart.org/content/animated-flame)
+
+SFX Credits:
+============
+Fire shot: themightyglider (https://opengameart.org/content/catching-fire)
+Glass break: spookymodem (https://opengameart.org/content/breaking-bottle)

@@ -1,0 +1,7 @@
+toolname molotov
+title Molotov
+description Optimized for street fights
+visibility true
+tags none
+preview C:\Program Files (x86)\Steam\steamapps\common\Casual Desktop Game\tools\molotov\preview.png
+changenote 0.1 - initial release
