@@ -1,0 +1,8 @@
+2D Art Credits:
+===============
+Thompson gun: ashmoses (https://opengameart.org/content/weapon-inventory-graphics)
+Muzzleflash sprite: tgfcoder (https://opengameart.org/content/endless-midnight-zombie-swarm-assets)
+
+SFX Credits:
+============
+Gunshot: Red Eclipse (https://opengameart.org/content/red-eclipse-sounds)

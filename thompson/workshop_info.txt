@@ -1,0 +1,7 @@
+toolname thompson
+title Thompson Rifle
+description Try this iconic submachine gun on your screen
+visibility true
+tags none
+preview D:\Programme\Steam\steamapps\common\Casual Desktop Game\tools\thompson\preview.jpg
+changenote version 0.1

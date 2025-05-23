@@ -1,0 +1,7 @@
+toolname potatomasher
+title Potato Masher
+description The original Kartoffelstampfer now available
+visibility true
+tags none
+preview D:\Programme\Steam\steamapps\common\Casual Desktop Game\tools\potatomasher\preview.jpg
+changenote version 0.1
