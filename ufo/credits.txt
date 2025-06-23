@@ -1,0 +1,8 @@
+2D Art Credits:
+===============
+Crosshair: para (https://opengameart.org/content/64-crosshairs-pack)
+
+SFX Credits:
+============
+Laser: dklon (https://opengameart.org/content/laser-fire)
+Spawn: Iwan Gabovitch (https://opengameart.org/content/ice-electricity-magic)
