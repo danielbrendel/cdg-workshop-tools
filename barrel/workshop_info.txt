@@ -1,0 +1,7 @@
+toolname barrel
+title Barrel
+description Chain reactions are guaranteed
+visibility true
+tags none
+preview D:\Programme\Steam\steamapps\common\Casual Desktop Game\tools\barrel\preview.jpg
+changenote version 0.1
