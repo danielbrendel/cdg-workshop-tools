@@ -1,0 +1,8 @@
+2D Art Credits:
+===============
+Explosion: Sinestesia (https://opengameart.org/content/2d-explosion-animations-frame-by-frame)
+
+SFX Credits:
+============
+Explosion: Stephen M. Cameron (https://opengameart.org/content/action-shooter-soundset-wwvi)
+Fuse: themightyglider (https://opengameart.org/content/simple-fuse-sound)

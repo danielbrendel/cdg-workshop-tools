@@ -3,170 +3,25 @@
 	
 	(C) 2018 - 2023 by Daniel Brendel
 	
-	Tool: Barrel (developed by Daniel Brendel)
-	Version: 0.2
+	Tool: Creeper (developed by Daniel Brendel)
+	Version: 0.1
 	Contact: dbrendel1988<at>gmail<dot>com
 	GitHub: https://github.com/danielbrendel/
 
 	Released under the MIT license
 */
 
-#include "${COMMON}/decal/decal.as"
-#include "${COMMON}/explosion/explosion.as"
+string g_szToolPath;
 
-string g_szToolPath = "";
-
-class CFlame : IScriptedEntity
+class color_s
 {
-	Vector m_vecPos;
-	Model m_oModel;
-	Timer m_oLifeTime;
-	Timer m_oFlames;
-	SpriteHandle m_hSprite;
-	int m_iCurrentFrame;
-	
-	CFlame()
-    {
-    }
-	
-	//Called when the entity gets spawned. The position on the screen is passed as argument
-	void OnSpawn(const Vector& in vec)
-	{
-		this.m_vecPos = vec;
-		this.m_vecPos[1] += 22;
-		this.m_hSprite = R_LoadSprite(g_szToolPath + "flames.png", 7, 48, 48, 7, false);
-		this.m_oLifeTime.SetDelay(10000);
-		this.m_oLifeTime.Reset();
-		this.m_oLifeTime.SetActive(true);
-		this.m_oFlames.SetDelay(10);
-		this.m_oFlames.Reset();
-		this.m_oFlames.SetActive(true);
-		SoundHandle hBurningSound = S_QuerySound("burn.wav");
-		S_PlaySound(hBurningSound, 8);
-		CDecalSprite@ obj = CDecalSprite();
-		Ent_SpawnEntity(@obj, this.m_vecPos);
-		BoundingBox bbox;
-		bbox.Alloc();
-		bbox.AddBBoxItem(Vector(0, 0), Vector(48, 48));
-		this.m_oModel.Alloc();
-		this.m_oModel.Initialize2(bbox, this.m_hSprite);
-	}
-	
-	//Called when the entity gets released
-	void OnRelease()
-	{
-	}
-	
-	//Process entity stuff
-	void OnProcess()
-	{
-		this.m_oLifeTime.Update();
-		
-		this.m_oFlames.Update();
-		if (this.m_oFlames.IsElapsed()) {
-			this.m_oFlames.Reset();
-			this.m_iCurrentFrame++;
-			if (this.m_iCurrentFrame >= 7)
-				this.m_iCurrentFrame = 0;
-		}
-	}
-	
-	//Entity can draw everything in default order here
-	void OnDraw()
-	{
-	}
-	
-	//Entity can draw on-top stuff here
-	void OnDrawOnTop()
-	{
-		R_DrawSprite(this.m_hSprite, this.m_vecPos, this.m_iCurrentFrame, 0.0, Vector(-1, -1), 0.0, 0.0, false, Color(0, 0, 0, 0));
-	}
-	
-	//Indicate whether the user is allowed to clean this entity
-	bool DoUserCleaning()
-	{
-		return false;
-	}
-	
-	//Indicate whether this entity shall be removed by the game
-	bool NeedsRemoval()
-	{
-		return this.m_oLifeTime.IsElapsed();
-	}
-	
-	//Indicate whether this entity is damageable. Damageable entities can collide with other
-	//entities (even with entities from other tools) and recieve and strike damage. 
-	//0 = not damageable, 1 = damage all, 2 = not damaging entities with same name
-	DamageType IsDamageable()
-	{
-		return DAMAGEABLE_ALL;
-	}
-	
-	//Called when the entity recieves damage
-	void OnDamage(DamageValue dv)
-	{
-	}
-	
-	//Called for recieving the model data for this entity. This is only used for
-	//damageable entities. 
-	Model& GetModel()
-	{
-		return this.m_oModel;
-	}
-	
-	//Called for recieving the current position. This is useful if the entity shall move.
-	Vector& GetPosition()
-	{
-		return this.m_vecPos;
-	}
-
-	//Can be used to overwrite the current position with the given position
-	void SetPosition(const Vector& in vec)
-	{
-	}
-	
-	//Return the rotation. This is actually not used by the host application, but might be useful to other entities
-	float GetRotation()
-	{
-		return 0.0;
-	}
-
-	//Can be used to overwrite the current rotation with the given rotation
-	void SetRotation(float fRotation)
-	{
-	}
-	
-	//Called for querying the damage value for this entity
-	DamageValue GetDamageValue()
-	{
-		return 5;
-	}
-	
-	//Return a name string here, e.g. the class name or instance name. This is used when DAMAGE_NOTSQUAD is defined as damage-type, but can also be useful to other entities
-	string GetName()
-	{
-		return "";
-	}
-	
-	//Indicate if this entity is movable
-	bool IsMovable()
-	{
-		return false;
-	}
-	
-	//This vector is used for drawing the selection box
-	Vector& GetSelectionSize()
-	{
-		return this.m_vecPos;
-	}
-	
-	//This method is used to set the movement destination position
-	void MoveTo(const Vector& in vec)
-	{
-	}
+	uint8 r, g, b, a;
 }
 
-class CMainExplosion : IScriptedEntity
+#include "${COMMON}/decal/decal.as"
+#include "${COMMON}/hitflash/hitflash.as"
+
+class CBigExplosion : IScriptedEntity
 {
 	Vector m_vecPos;
 	Model m_oModel;
@@ -175,7 +30,7 @@ class CMainExplosion : IScriptedEntity
 	SpriteHandle m_hSprite;
 	SoundHandle m_hSound;
 	
-	CMainExplosion()
+	CBigExplosion()
     {
 		this.m_iFrameCount = 0;
     }
@@ -280,7 +135,7 @@ class CMainExplosion : IScriptedEntity
 	//Called for querying the damage value for this entity
 	DamageValue GetDamageValue()
 	{
-		return 20;
+		return 10;
 	}
 	
 	//Return a name string here, e.g. the class name or instance name. This is used when DAMAGE_NOTSQUAD is defined as damage-type, but can also be useful to other entities
@@ -307,45 +162,168 @@ class CMainExplosion : IScriptedEntity
 	}
 }
 
-class CBarrel : IScriptedEntity
+const float C_CREEPER_DEFAULT_SPEED = 2;
+const int C_CREEPER_REACT_RANGE = 300;
+const int C_CREEPER_ATTACK_RANGE = 20;
+
+class CCreeper : IScriptedEntity
 {
 	Vector m_vecPos;
-	float m_fRotation;
 	Model m_oModel;
 	SpriteHandle m_hSprite;
-	SoundHandle m_hFlames;
+	SpriteHandle m_hFootLeft;
+	SpriteHandle m_hFootRight;
+	Timer m_oMoveStart;
+	Timer m_oShaking;
+	Timer m_oDirChange;
+	Timer m_oLifeTime;
+	Timer m_oEnemyCheck;
+	Timer m_oFuze;
+	float m_fShakeRot;
+	float m_fWalkRot;
+	float m_fSpeed;
+	uint8 m_hvHealth;
+	bool m_bCanMove;
 	bool m_bDetonate;
+	bool m_bGotEnemy;
+	SoundHandle m_hFuseSound;
+	SoundHandle m_hPainSound;
+	CHitFlash m_oHitFlash;
 	
-	CBarrel()
+	CCreeper()
     {
+		this.m_hvHealth = 100;
+		this.m_fSpeed = C_CREEPER_DEFAULT_SPEED;
+		this.m_fShakeRot = 0.0;
+		this.m_bCanMove = false;
+		this.m_bGotEnemy = false;
 		this.m_bDetonate = false;
-		this.m_fRotation = 0.0f;
+		this.m_oHitFlash = CHitFlash();
     }
+	
+	void Move(void)
+	{
+		if (!this.m_bCanMove)
+			return;
+	
+		//Update position according to speed
+		this.m_vecPos[0] += int(sin(this.m_fWalkRot) * this.m_fSpeed);
+		this.m_vecPos[1] -= int(cos(this.m_fWalkRot) * this.m_fSpeed);
+		
+		//Fix positions
+		
+		if (this.m_vecPos[0] <= -32) {
+			this.m_vecPos[0] = Wnd_GetWindowCenterX() * 2 + 32;
+		} else if (this.m_vecPos[0] >= Wnd_GetWindowCenterX() * 2 + 32) {
+			this.m_vecPos[0] = -32;
+		}
+		
+		if (this.m_vecPos[1] <= -32) {
+			this.m_vecPos[1] = Wnd_GetWindowCenterY() * 2 + 32;
+		} else if (this.m_vecPos[1] >= Wnd_GetWindowCenterY() * 2 + 32) {
+			this.m_vecPos[1] = -32;
+		}
+	}
+	
+	bool ShallRemove(void)
+	{
+		//Indicate removal
+		return ((this.m_oLifeTime.IsElapsed()) || (this.m_hvHealth == 0) || (this.m_bDetonate == true));
+	}
+	
+	void LookAt(const Vector &in vPos)
+	{
+		//Look at position
+		float flAngle = atan2(float(vPos[1] - this.m_vecPos[1]), float(vPos[0] - this.m_vecPos[0]));
+		this.m_fWalkRot = flAngle + 6.30 / 4;
+	}
+	
+	void CheckForEnemiesInRange()
+	{
+		//Check for enemies in close range and act accordingly
+		
+		this.m_bGotEnemy = false;
+		IScriptedEntity@ pEntity = null;
+		
+		for (size_t i = 0; i < Ent_GetEntityCount(); i++) {
+			@pEntity = @Ent_GetEntityHandle(i);
+			if ((@pEntity != null) && (pEntity.GetName() != this.GetName()) && (pEntity.IsDamageable() != DAMAGEABLE_NO)) {
+				if (this.m_vecPos.Distance(pEntity.GetPosition()) <= C_CREEPER_REACT_RANGE) {
+					this.m_bGotEnemy = true;
+					break;
+				}
+			}
+		}
+		
+		if (this.m_bGotEnemy) {
+			if (this.m_fSpeed == C_CREEPER_DEFAULT_SPEED)
+				this.m_fSpeed *= 3;
+				
+			if (pEntity.GetName().length() > 0) {
+				this.LookAt(pEntity.GetPosition());
+			}
+
+			if (this.m_vecPos.Distance(pEntity.GetPosition()) <= C_CREEPER_ATTACK_RANGE) {
+				this.m_bDetonate = true;
+			}
+			
+			if (!this.m_oFuze.IsActive()) {
+				S_PlaySound(this.m_hFuseSound, 10);
+				
+				this.m_oFuze.Reset();
+				this.m_oFuze.SetActive(true);
+			}
+		} else {
+			if (this.m_fSpeed != C_CREEPER_DEFAULT_SPEED)
+				this.m_fSpeed = C_CREEPER_DEFAULT_SPEED;
+		
+			if (this.m_oFuze.IsActive())
+				this.m_oFuze.SetActive(false);
+		}
+	}
 	
 	//Called when the entity gets spawned. The position on the screen is passed as argument
 	void OnSpawn(const Vector& in vec)
 	{
-		this.m_vecPos = Vector(vec[0] - 10, vec[1] - 15);
-		this.m_hSprite = R_LoadSprite(g_szToolPath + "barrel.png", 1, 50, 55, 1, true);
-		SoundHandle hSpawn = S_QuerySound(g_szToolPath + "spawn.wav");
-		this.m_hFlames = S_QuerySound(g_szToolPath + "flames.wav");
-		S_PlaySound(hSpawn, 8);
-		this.m_oModel.Alloc();
+		this.m_fWalkRot = float(Util_Random(1, 360));
+		this.m_vecPos = vec;
+		this.m_vecPos[0] += 32;
+		this.m_hSprite = R_LoadSprite(g_szToolPath + "creeper.png", 1, 74, 111, 1, true);
+		this.m_hFootLeft = R_LoadSprite(g_szToolPath + "creeper_foot_left.png", 1, 24, 29, 1, true);
+		this.m_hFootRight = R_LoadSprite(g_szToolPath + "creeper_foot_right.png", 1, 24, 29, 1, true);
+		this.m_oLifeTime.SetDelay(240000);
+		this.m_oLifeTime.Reset();
+		this.m_oLifeTime.SetActive(true);
+		this.m_oMoveStart.SetDelay(1000);
+		this.m_oMoveStart.Reset();
+		this.m_oMoveStart.SetActive(true);
+		this.m_oDirChange.SetDelay(10000);
+		this.m_oDirChange.Reset();
+		this.m_oDirChange.SetActive(true);
+		this.m_oEnemyCheck.SetDelay(1);
+		this.m_oEnemyCheck.Reset();
+		this.m_oEnemyCheck.SetActive(true);
+		this.m_oShaking.SetDelay(1000);
+		this.m_oShaking.Reset();
+		this.m_oShaking.SetActive(true);
+		this.m_oFuze.SetDelay(1500);
+		this.m_oFuze.Reset();
+		this.m_oFuze.SetActive(false);
+		this.m_hFuseSound = S_QuerySound(g_szToolPath + "fuse.wav");
+		this.m_hPainSound = S_QuerySound(g_szToolPath + "hurt.wav");
 		BoundingBox bbox;
 		bbox.Alloc();
-		bbox.AddBBoxItem(Vector(0, 0), Vector(50, 55));
+		bbox.AddBBoxItem(Vector(0, 0), Vector(74, 111));
 		this.m_oModel.Alloc();
-		this.m_oModel.SetCenter(Vector(32 / 2, 32 / 2));
+		this.m_oModel.SetCenter(Vector(37, 55));
 		this.m_oModel.Initialize2(bbox, this.m_hSprite);
 	}
 	
 	//Called when the entity gets released
 	void OnRelease()
 	{
-		CMainExplosion @mex = CMainExplosion();
-		Ent_SpawnEntity(@mex, this.m_vecPos);
-		
-		S_PlaySound(this.m_hFlames, 10);
+		CBigExplosion @bex = CBigExplosion();
+		Ent_SpawnEntity(@bex, this.m_vecPos);
 		
 		CDamageDecal @mdc = CDamageDecal();
 		mdc.SetDamageSize(Vector(64, 64));
@@ -353,26 +331,62 @@ class CBarrel : IScriptedEntity
 		mdc.SetOffspringFlag(true);
 		mdc.SetDamageValue(50);
 		Ent_SpawnEntity(@mdc, this.m_vecPos);
-	
-		for (int i = 0; i < 3 + Util_Random(1, 4); i++) {
-			Vector vTarget = Vector(this.m_vecPos[0] + (Util_Random(0, 200) - 100), this.m_vecPos[1] + (Util_Random(0, 200) - 100));
-			vTarget[1] -= 15;
-			
-			CFlame @flame = @CFlame();
-			Ent_SpawnEntity(@flame, vTarget);
-		}
 	}
 	
 	//Process entity stuff
 	void OnProcess()
 	{
+		this.m_oLifeTime.Update();
+		
+		if (this.m_oMoveStart.IsActive()) {
+			this.m_oMoveStart.Update();
+			if (this.m_oMoveStart.IsElapsed()) {
+				this.m_oMoveStart.SetActive(false);
+				this.m_bCanMove = true;
+			}
+		}
+	
+		this.m_oShaking.Update();
+		if (this.m_oShaking.IsElapsed()) {
+			if (!this.m_bGotEnemy)
+				this.m_fShakeRot = -0.25 + float(Util_Random(1, 5)) / 10.0;
+		}
+		
+		this.m_oDirChange.Update();
+		if (this.m_oDirChange.IsElapsed()) {
+			this.m_oDirChange.Reset();
+			if (!this.m_bGotEnemy)
+				this.m_fWalkRot = float(Util_Random(1, 360));
+		}
+		
+		if (this.m_oFuze.IsActive()) {
+			this.m_oFuze.Update();
+			if (this.m_oFuze.IsElapsed()) {
+				this.m_oFuze.Reset();
+				
+				S_PlaySound(this.m_hFuseSound, 10);
+			}
+		}
+		
+		this.CheckForEnemiesInRange();
+		this.Move();
+		
+		this.m_oHitFlash.Process();
 	}
 	
 	//Entity can draw everything in default order here
 	void OnDraw()
 	{
-
-		R_DrawSprite(this.m_hSprite, this.m_vecPos, 0, 0.0, Vector(-1, -1), 0.0, 0.0, false, Color(0, 0, 0, 0));
+	}
+	
+	//Entity can draw on-top stuff here
+	void OnDrawOnTop()
+	{
+		color_s sFlashColor = this.m_oHitFlash.GetHitColor();
+	
+		R_DrawSprite(this.m_hSprite, this.m_vecPos, 0, 0.0f, Vector(-1, -1), 0.0, 0.0, this.m_oHitFlash.ShouldDraw(), Color(sFlashColor.r, sFlashColor.g, sFlashColor.b, sFlashColor.a));
+		R_DrawSprite(this.m_hFootLeft, Vector(this.m_vecPos[0] + 15, this.m_vecPos[1] + 83), 0, 0.0f + this.m_fShakeRot, Vector(-1, -1), 0.0, 0.0, this.m_oHitFlash.ShouldDraw(), Color(sFlashColor.r, sFlashColor.g, sFlashColor.b, sFlashColor.a));
+		R_DrawSprite(this.m_hFootRight, Vector(this.m_vecPos[0] + 35, this.m_vecPos[1] + 83), 0, 0.0f + this.m_fShakeRot, Vector(-1, -1), 0.0, 0.0, this.m_oHitFlash.ShouldDraw(), Color(sFlashColor.r, sFlashColor.g, sFlashColor.b, sFlashColor.a));
 	}
 	
 	//Indicate whether the user is allowed to clean this entity
@@ -384,7 +398,7 @@ class CBarrel : IScriptedEntity
 	//Indicate whether this entity shall be removed by the game
 	bool NeedsRemoval()
 	{
-		return this.m_bDetonate;
+		return this.ShallRemove();
 	}
 	
 	//Indicate whether this entity is damageable. Damageable entities can collide with other
@@ -398,7 +412,12 @@ class CBarrel : IScriptedEntity
 	//Called when the entity recieves damage
 	void OnDamage(DamageValue dv)
 	{
-		this.m_bDetonate = true;
+		if (dv == 0) return;
+		
+		this.m_oHitFlash.Start();
+		
+		if (int(this.m_hvHealth) - int(dv) >= 0) { this.m_hvHealth -= dv; S_PlaySound(this.m_hPainSound, 10); }
+		else { this.m_hvHealth = 0; }
 	}
 	
 	//Called for recieving the model data for this entity. This is only used for
@@ -417,19 +436,17 @@ class CBarrel : IScriptedEntity
 	//Can be used to overwrite the current position with the given position
 	void SetPosition(const Vector& in vec)
 	{
-		this.m_vecPos = vec;
 	}
 	
 	//Return the rotation. This is actually not used by the host application, but might be useful to other entities
 	float GetRotation()
 	{
-		return m_fRotation;
+		return this.m_fWalkRot;
 	}
 
 	//Can be used to overwrite the current rotation with the given rotation
 	void SetRotation(float fRotation)
 	{
-		this.m_fRotation = fRotation;
 	}
 	
 	//Called for querying the damage value for this entity
@@ -441,7 +458,7 @@ class CBarrel : IScriptedEntity
 	//Return a name string here, e.g. the class name or instance name. This is used when DAMAGE_NOTSQUAD is defined as damage-type, but can also be useful to other entities
 	string GetName()
 	{
-		return "";
+		return "Creeper";
 	}
 	
 	//Indicate if this entity is movable
@@ -498,8 +515,8 @@ void CDG_API_DrawOnTop()
 */
 void CDG_API_Trigger(const Vector& in vAtPos)
 {
-	CBarrel @obj = CBarrel();
-	Ent_SpawnEntity(@obj, vAtPos);
+	CCreeper @obj = CCreeper();
+	Ent_SpawnEntity(@obj, Vector(vAtPos[0] - 32, vAtPos[1] - 10));
 }
 
 /*
@@ -539,16 +556,16 @@ void CDG_API_Release()
 */
 bool CDG_API_QueryToolInfo(HostVersion hvVersion, ToolInfo &out info, const GameKeys& in gamekeys, const string &in szToolPath)
 {
-	info.szName = "Barrel";
+	info.szName = "Creeper";
 	info.szAuthor = "Daniel Brendel";
-	info.szVersion = "0.2";
+	info.szVersion = "0.1";
 	info.szContact = "dbrendel1988<at>gmail<dot>com";
 	info.szPreviewImage = "preview.png";
 	info.szCursor = "cursor.png";
-	info.szCategory = "Tools";
+	info.szCategory = "Monsters";
 	info.iCursorWidth = 32;
 	info.iCursorHeight = 32;
-	info.uiTriggerDelay = 350;
+	info.uiTriggerDelay = 125;
 	
 	g_szToolPath = szToolPath;
 
