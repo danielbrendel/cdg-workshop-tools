@@ -6,3 +6,4 @@ SFX Credits:
 ============
 Explosion: Stephen M. Cameron (https://opengameart.org/content/action-shooter-soundset-wwvi)
 Fuse: themightyglider (https://opengameart.org/content/simple-fuse-sound)
+Steps: Jute (https://opengameart.org/content/foot-walking-step-sounds-on-stone-water-snow-wood-and-dirt)

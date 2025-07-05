@@ -163,6 +163,7 @@ class CBigExplosion : IScriptedEntity
 }
 
 const float C_CREEPER_DEFAULT_SPEED = 2;
+const int C_CREEPER_DEFAULT_STEPDELAY = 500;
 const int C_CREEPER_REACT_RANGE = 300;
 const int C_CREEPER_ATTACK_RANGE = 20;
 
@@ -174,11 +175,13 @@ class CCreeper : IScriptedEntity
 	SpriteHandle m_hFootLeft;
 	SpriteHandle m_hFootRight;
 	Timer m_oMoveStart;
+	Timer m_oSteps;
 	Timer m_oShaking;
 	Timer m_oDirChange;
 	Timer m_oLifeTime;
 	Timer m_oEnemyCheck;
 	Timer m_oFuze;
+	Timer m_oFlashing;
 	float m_fShakeRot;
 	float m_fWalkRot;
 	float m_fSpeed;
@@ -186,6 +189,8 @@ class CCreeper : IScriptedEntity
 	bool m_bCanMove;
 	bool m_bDetonate;
 	bool m_bGotEnemy;
+	bool m_bFlashColor;
+	array<SoundHandle> m_arrSteps;
 	SoundHandle m_hFuseSound;
 	SoundHandle m_hPainSound;
 	CHitFlash m_oHitFlash;
@@ -197,6 +202,7 @@ class CCreeper : IScriptedEntity
 		this.m_fShakeRot = 0.0;
 		this.m_bCanMove = false;
 		this.m_bGotEnemy = false;
+		this.m_bFlashColor = false;
 		this.m_bDetonate = false;
 		this.m_oHitFlash = CHitFlash();
     }
@@ -259,6 +265,8 @@ class CCreeper : IScriptedEntity
 			if (this.m_fSpeed == C_CREEPER_DEFAULT_SPEED)
 				this.m_fSpeed *= 3;
 				
+			this.m_oSteps.SetDelay(C_CREEPER_DEFAULT_STEPDELAY / 2);
+				
 			if (pEntity.GetName().length() > 0) {
 				this.LookAt(pEntity.GetPosition());
 			}
@@ -273,12 +281,24 @@ class CCreeper : IScriptedEntity
 				this.m_oFuze.Reset();
 				this.m_oFuze.SetActive(true);
 			}
+			
+			if (!this.m_oFlashing.IsActive()) {
+				this.m_oFlashing.Reset();
+				this.m_oFlashing.SetActive(true);
+			}
 		} else {
 			if (this.m_fSpeed != C_CREEPER_DEFAULT_SPEED)
 				this.m_fSpeed = C_CREEPER_DEFAULT_SPEED;
+				
+			this.m_oSteps.SetDelay(C_CREEPER_DEFAULT_STEPDELAY);
 		
 			if (this.m_oFuze.IsActive())
 				this.m_oFuze.SetActive(false);
+				
+			if (this.m_oFlashing.IsActive()) {
+				this.m_bFlashColor = false;
+				this.m_oFlashing.SetActive(false);
+			}
 		}
 	}
 	
@@ -297,6 +317,9 @@ class CCreeper : IScriptedEntity
 		this.m_oMoveStart.SetDelay(1000);
 		this.m_oMoveStart.Reset();
 		this.m_oMoveStart.SetActive(true);
+		this.m_oSteps.SetDelay(C_CREEPER_DEFAULT_STEPDELAY);
+		this.m_oSteps.Reset();
+		this.m_oSteps.SetActive(false);
 		this.m_oDirChange.SetDelay(10000);
 		this.m_oDirChange.Reset();
 		this.m_oDirChange.SetActive(true);
@@ -309,6 +332,12 @@ class CCreeper : IScriptedEntity
 		this.m_oFuze.SetDelay(1500);
 		this.m_oFuze.Reset();
 		this.m_oFuze.SetActive(false);
+		this.m_oFlashing.SetDelay(200);
+		this.m_oFlashing.Reset();
+		this.m_oFlashing.SetActive(false);
+		for (int i = 1; i <= 10; i++) {
+			this.m_arrSteps.insertLast(S_QuerySound(g_szToolPath + "step" + i + ".wav"));
+		}
 		this.m_hFuseSound = S_QuerySound(g_szToolPath + "fuse.wav");
 		this.m_hPainSound = S_QuerySound(g_szToolPath + "hurt.wav");
 		BoundingBox bbox;
@@ -343,6 +372,18 @@ class CCreeper : IScriptedEntity
 			if (this.m_oMoveStart.IsElapsed()) {
 				this.m_oMoveStart.SetActive(false);
 				this.m_bCanMove = true;
+				this.m_oSteps.SetActive(true);
+			}
+		}
+		
+		if (this.m_oSteps.IsActive()) {
+			this.m_oSteps.Update();
+			if (this.m_oSteps.IsElapsed()) {
+				this.m_oSteps.Reset();
+				
+				int soundvol = (this.m_bGotEnemy) ? 10 : 8;
+				int rndstep = Util_Random(0, this.m_arrSteps.length() - 1);
+				S_PlaySound(this.m_arrSteps[rndstep], soundvol);
 			}
 		}
 	
@@ -368,6 +409,15 @@ class CCreeper : IScriptedEntity
 			}
 		}
 		
+		if (this.m_oFlashing.IsActive()) {
+			this.m_oFlashing.Update();
+			if (this.m_oFlashing.IsElapsed()) {
+				this.m_oFlashing.Reset();
+				
+				this.m_bFlashColor = !this.m_bFlashColor;
+			}
+		}
+		
 		this.CheckForEnemiesInRange();
 		this.Move();
 		
@@ -382,11 +432,20 @@ class CCreeper : IScriptedEntity
 	//Entity can draw on-top stuff here
 	void OnDrawOnTop()
 	{
-		color_s sFlashColor = this.m_oHitFlash.GetHitColor();
+		color_s sDrawingColor;
+		bool bCustomColor = (this.m_bFlashColor) || (this.m_oHitFlash.ShouldDraw());
+		if (this.m_oHitFlash.ShouldDraw()) {
+			sDrawingColor = this.m_oHitFlash.GetHitColor();
+		} else if (this.m_bFlashColor) {
+			sDrawingColor.r = 100;
+			sDrawingColor.g = 100;
+			sDrawingColor.b = 0;
+			sDrawingColor.a = 255;
+		}
 	
-		R_DrawSprite(this.m_hSprite, this.m_vecPos, 0, 0.0f, Vector(-1, -1), 0.0, 0.0, this.m_oHitFlash.ShouldDraw(), Color(sFlashColor.r, sFlashColor.g, sFlashColor.b, sFlashColor.a));
-		R_DrawSprite(this.m_hFootLeft, Vector(this.m_vecPos[0] + 15, this.m_vecPos[1] + 83), 0, 0.0f + this.m_fShakeRot, Vector(-1, -1), 0.0, 0.0, this.m_oHitFlash.ShouldDraw(), Color(sFlashColor.r, sFlashColor.g, sFlashColor.b, sFlashColor.a));
-		R_DrawSprite(this.m_hFootRight, Vector(this.m_vecPos[0] + 35, this.m_vecPos[1] + 83), 0, 0.0f + this.m_fShakeRot, Vector(-1, -1), 0.0, 0.0, this.m_oHitFlash.ShouldDraw(), Color(sFlashColor.r, sFlashColor.g, sFlashColor.b, sFlashColor.a));
+		R_DrawSprite(this.m_hSprite, this.m_vecPos, 0, 0.0f, Vector(-1, -1), 0.0, 0.0, bCustomColor, Color(sDrawingColor.r, sDrawingColor.g, sDrawingColor.b, sDrawingColor.a));
+		R_DrawSprite(this.m_hFootLeft, Vector(this.m_vecPos[0] + 15, this.m_vecPos[1] + 83), 0, 0.0f + this.m_fShakeRot, Vector(-1, -1), 0.0, 0.0, bCustomColor, Color(sDrawingColor.r, sDrawingColor.g, sDrawingColor.b, sDrawingColor.a));
+		R_DrawSprite(this.m_hFootRight, Vector(this.m_vecPos[0] + 35, this.m_vecPos[1] + 83), 0, 0.0f + this.m_fShakeRot, Vector(-1, -1), 0.0, 0.0, bCustomColor, Color(sDrawingColor.r, sDrawingColor.g, sDrawingColor.b, sDrawingColor.a));
 	}
 	
 	//Indicate whether the user is allowed to clean this entity
