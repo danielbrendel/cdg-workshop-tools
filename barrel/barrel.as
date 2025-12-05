@@ -147,6 +147,17 @@ class CFlame : IScriptedEntity
 	{
 		return "";
 	}
+
+	//Return a data string that represents the value of the info identifier string
+	string GetExtraInfo(const string &in info)
+	{
+		return "";
+	}
+	
+	//Set data information identified by the info expression
+	void SetExtraInfo(const string &in info, const string &in data)
+	{
+	}
 	
 	//Indicate if this entity is movable
 	bool IsMovable()
@@ -287,6 +298,17 @@ class CMainExplosion : IScriptedEntity
 	string GetName()
 	{
 		return "Explosion";
+	}
+
+	//Return a data string that represents the value of the info identifier string
+	string GetExtraInfo(const string &in info)
+	{
+		return "";
+	}
+	
+	//Set data information identified by the info expression
+	void SetExtraInfo(const string &in info, const string &in data)
+	{
 	}
 	
 	//Indicate if this entity is movable
@@ -443,6 +465,23 @@ class CBarrel : IScriptedEntity
 	{
 		return "";
 	}
+
+	//Return a data string that represents the value of the info identifier string
+	string GetExtraInfo(const string &in info)
+	{
+		if (info == "script") {
+			return "barrel.as";
+		} else if (info == "team") {
+			return "0";
+		}
+
+		return "";
+	}
+	
+	//Set data information identified by the info expression
+	void SetExtraInfo(const string &in info, const string &in data)
+	{
+	}
 	
 	//Indicate if this entity is movable
 	bool IsMovable()
@@ -500,6 +539,17 @@ void CDG_API_Trigger(const Vector& in vAtPos)
 {
 	CBarrel @obj = CBarrel();
 	Ent_SpawnEntity(@obj, vAtPos);
+}
+
+/*
+	Called for restoring entities that are part of a loaded blueprint
+*/
+IScriptedEntity@+ CDG_API_OnSpawnRestoreEntity()
+{
+	CBarrel @obj = CBarrel();
+	Ent_SpawnEntity(@obj, Vector(0, 0));
+
+	return @obj;
 }
 
 /*
