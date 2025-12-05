@@ -143,6 +143,17 @@ class CBigExplosion : IScriptedEntity
 	{
 		return "Explosion";
 	}
+
+	//Return a data string that represents the value of the info identifier string
+	string GetExtraInfo(const string &in info)
+	{
+		return "";
+	}
+	
+	//Set data information identified by the info expression
+	void SetExtraInfo(const string &in info, const string &in data)
+	{
+	}
 	
 	//Indicate if this entity is movable
 	bool IsMovable()
@@ -495,6 +506,7 @@ class CCreeper : IScriptedEntity
 	//Can be used to overwrite the current position with the given position
 	void SetPosition(const Vector& in vec)
 	{
+		this.m_vecPos = vec;
 	}
 	
 	//Return the rotation. This is actually not used by the host application, but might be useful to other entities
@@ -506,6 +518,7 @@ class CCreeper : IScriptedEntity
 	//Can be used to overwrite the current rotation with the given rotation
 	void SetRotation(float fRotation)
 	{
+		this.m_fWalkRot = fRotation;
 	}
 	
 	//Called for querying the damage value for this entity
@@ -518,6 +531,23 @@ class CCreeper : IScriptedEntity
 	string GetName()
 	{
 		return "Creeper";
+	}
+
+	//Return a data string that represents the value of the info identifier string
+	string GetExtraInfo(const string &in info)
+	{
+		if (info == "script") {
+			return "creeper.as";
+		} else if (info == "team") {
+			return "0";
+		}
+
+		return "";
+	}
+	
+	//Set data information identified by the info expression
+	void SetExtraInfo(const string &in info, const string &in data)
+	{
 	}
 	
 	//Indicate if this entity is movable
@@ -576,6 +606,17 @@ void CDG_API_Trigger(const Vector& in vAtPos)
 {
 	CCreeper @obj = CCreeper();
 	Ent_SpawnEntity(@obj, Vector(vAtPos[0] - 32, vAtPos[1] - 10));
+}
+
+/*
+	Called for restoring entities that are part of a loaded blueprint
+*/
+IScriptedEntity@+ CDG_API_OnSpawnRestoreEntity()
+{
+	CCreeper @obj = CCreeper();
+	Ent_SpawnEntity(@obj, Vector(0, 0));
+
+	return @obj;
 }
 
 /*
