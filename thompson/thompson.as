@@ -91,6 +91,14 @@ void CDG_API_Trigger(const Vector& in vAtPos)
 }
 
 /*
+	Called for restoring entities that are part of a loaded blueprint
+*/
+IScriptedEntity@+ CDG_API_OnSpawnRestoreEntity()
+{
+	return null;
+}
+
+/*
 	This function is called for any keyboard key event. This is even the case if 
 	this tool is not currently selected.
 */
