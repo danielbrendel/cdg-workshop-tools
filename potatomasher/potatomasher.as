@@ -149,6 +149,17 @@ class CFlame : IScriptedEntity
 		return "";
 	}
 	
+	//Return a data string that represents the value of the info identifier string
+	string GetExtraInfo(const string &in info)
+	{
+		return "";
+	}
+	
+	//Set data information identified by the info expression
+	void SetExtraInfo(const string &in info, const string &in data)
+	{
+	}
+	
 	//Indicate if this entity is movable
 	bool IsMovable()
 	{
@@ -288,6 +299,17 @@ class CMainExplosion : IScriptedEntity
 	string GetName()
 	{
 		return "Explosion";
+	}
+
+	//Return a data string that represents the value of the info identifier string
+	string GetExtraInfo(const string &in info)
+	{
+		return "";
+	}
+	
+	//Set data information identified by the info expression
+	void SetExtraInfo(const string &in info, const string &in data)
+	{
 	}
 	
 	//Indicate if this entity is movable
@@ -473,6 +495,17 @@ class CPotatoMasherEntity : IScriptedEntity
 	{
 		return "";
 	}
+
+	//Return a data string that represents the value of the info identifier string
+	string GetExtraInfo(const string &in info)
+	{
+		return "";
+	}
+	
+	//Set data information identified by the info expression
+	void SetExtraInfo(const string &in info, const string &in data)
+	{
+	}
 	
 	//Indicate if this entity is movable
 	bool IsMovable()
@@ -535,6 +568,17 @@ void CDG_API_Trigger(const Vector& in vAtPos)
 	
 	SoundHandle hSound = S_QuerySound(g_szToolPath + "throw.wav");
 	S_PlaySound(hSound, 10);
+}
+
+/*
+	Called for restoring entities that are part of a loaded blueprint
+*/
+IScriptedEntity@+ CDG_API_OnSpawnRestoreEntity()
+{
+	CPotatoMasherEntity @obj = CPotatoMasherEntity();
+	Ent_SpawnEntity(@obj, Vector(0, 0));
+
+	return @obj;
 }
 
 /*
