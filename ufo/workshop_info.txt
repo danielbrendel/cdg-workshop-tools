@@ -4,4 +4,4 @@ description A mad alien in an UFO
 visibility true
 tags none
 preview D:\Programme\Steam\steamapps\common\Casual Desktop Game\tools\ufo\preview.jpg
-changenote version 0.1
+changenote version 0.2
