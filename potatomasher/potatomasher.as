@@ -1,7 +1,7 @@
 /*
 	Casual Desktop Game (dnyCasualDeskGame) v1.0 developed by Daniel Brendel
 	
-	(C) 2018 - 2023 by Daniel Brendel
+	(C) 2018 - 2025 by Daniel Brendel
 	
 	Tool: Potato Masher (developed by Daniel Brendel)
 	Version: 0.1
