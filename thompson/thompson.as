@@ -142,7 +142,7 @@ bool CDG_API_QueryToolInfo(HostVersion hvVersion, ToolInfo &out info, const Game
 {
 	info.szName = "Thompson";
 	info.szAuthor = "Daniel Brendel";
-	info.szVersion = "0.1";
+	info.szVersion = "0.2";
 	info.szContact = "dbrendel1988<at>gmail<dot>com";
 	info.szPreviewImage = "preview.png";
 	info.szCursor = "gun.png";
