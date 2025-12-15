@@ -4,7 +4,7 @@
 	(C) 2018 - 2025 by Daniel Brendel
 	
 	Tool: Potato Masher (developed by Daniel Brendel)
-	Version: 0.1
+	Version: 0.2
 	Contact: dbrendel1988<at>gmail<dot>com
 	GitHub: https://github.com/danielbrendel/
 
