@@ -160,6 +160,17 @@ class CLaserEntity : IScriptedEntity
 	{
 		return "";
 	}
+
+	//Return a data string that represents the value of the info identifier string
+	string GetExtraInfo(const string &in info)
+	{
+		return "";
+	}
+	
+	//Set data information identified by the info expression
+	void SetExtraInfo(const string &in info, const string &in data)
+	{
+	}
 	
 	//Indicate if this entity is movable
 	bool IsMovable()
@@ -336,6 +347,17 @@ class CUfo : IScriptedEntity
 	{
 		return "";
 	}
+
+	//Return a data string that represents the value of the info identifier string
+	string GetExtraInfo(const string &in info)
+	{
+		return "";
+	}
+	
+	//Set data information identified by the info expression
+	void SetExtraInfo(const string &in info, const string &in data)
+	{
+	}
 	
 	//Indicate if this entity is movable
 	bool IsMovable()
@@ -393,6 +415,14 @@ void CDG_API_Trigger(const Vector& in vAtPos)
 {
 	CUfo @obj = CUfo();
 	Ent_SpawnEntity(@obj, vAtPos);
+}
+
+/*
+	Called for restoring entities that are part of a loaded blueprint
+*/
+IScriptedEntity@+ CDG_API_OnSpawnRestoreEntity()
+{
+	return null;
 }
 
 /*
