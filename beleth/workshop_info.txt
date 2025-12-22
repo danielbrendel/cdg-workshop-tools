@@ -1,0 +1,7 @@
+toolname beleth
+title Beleth
+description Beleth the Infernal ascended from the underworld to destroy the world
+visibility true
+tags none
+preview D:\Programme\Steam\steamapps\common\Casual Desktop Game\tools\beleth\preview.jpg
+changenote version 0.1

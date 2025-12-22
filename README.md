@@ -6,8 +6,10 @@ This repository is a collection of official workshop items for Casual Desktop Ga
 
 ## List of tools
 - barrel
+- beleth
 - creeper
 - potatomasher
+- tchest
 - thompson
 - ufo
 

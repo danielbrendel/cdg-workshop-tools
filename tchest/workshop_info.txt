@@ -1,0 +1,7 @@
+toolname tchest
+title Treasure Chest
+description The treasure chest might lead to an explosive surprise
+visibility true
+tags none
+preview D:\Programme\Steam\steamapps\common\Casual Desktop Game\tools\tchest\preview.jpg
+changenote version 0.1
