@@ -8,6 +8,7 @@ This repository is a collection of official workshop items for Casual Desktop Ga
 - barrel
 - beleth
 - creeper
+- firewall
 - potatomasher
 - tchest
 - thompson

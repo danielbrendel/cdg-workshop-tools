@@ -1,0 +1,8 @@
+2D Art Credits:
+===============
+Flame sheet: para (https://opengameart.org/content/animated-particle-effects-1)
+
+SFX Credits:
+============
+Fire loop: PagDev (https://opengameart.org/content/fireplace-sound-loop)
+
