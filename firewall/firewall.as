@@ -35,7 +35,7 @@ class CFlame : IScriptedEntity
 	//Called when the entity gets spawned. The position on the screen is passed as argument
 	void OnSpawn(const Vector& in vec)
 	{
-		this.m_vecPos = Vector(vec[0], -50);
+		this.m_vecPos = Vector(vec[0], Util_Random(0, 100) - 150);
 		this.m_hSprite = R_LoadSprite(g_szToolPath + "flames.png", 64, this.m_vecSize[0], this.m_vecSize[1], 8, false);
 		this.m_oMovement.SetDelay(10);
 		this.m_oMovement.Reset();
