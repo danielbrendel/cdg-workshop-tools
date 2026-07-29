@@ -4,7 +4,7 @@
 	(C) 2018 - 2025 by Daniel Brendel
 	
 	Tool: Firewall (developed by Daniel Brendel)
-	Version: 0.1
+	Version: 0.2
 	Contact: dbrendel1988<at>gmail<dot>com
 	GitHub: https://github.com/danielbrendel/
 
@@ -288,7 +288,7 @@ bool CDG_API_QueryToolInfo(HostVersion hvVersion, ToolInfo &out info, const Game
 {
 	info.szName = "Firewall";
 	info.szAuthor = "Daniel Brendel";
-	info.szVersion = "0.1";
+	info.szVersion = "0.2";
 	info.szContact = "dbrendel1988<at>gmail<dot>com";
 	info.szPreviewImage = "preview.png";
 	info.szCursor = "cursor.png";

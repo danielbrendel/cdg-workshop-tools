@@ -4,4 +4,4 @@ description For safety purposes, trust me...
 visibility true
 tags none
 preview D:\Programme\Steam\steamapps\common\Casual Desktop Game\tools\firewall\preview.jpg
-changenote version 0.1
+changenote version 0.2
