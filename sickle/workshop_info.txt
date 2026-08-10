@@ -1,0 +1,7 @@
+toolname sickle
+title Sickle
+description Laser sickles in burst fire mode
+visibility true
+tags none
+preview D:\Programme\Steam\steamapps\common\Casual Desktop Game\tools\sickle\preview.jpg
+changenote version 0.1
